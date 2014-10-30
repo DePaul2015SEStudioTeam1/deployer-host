@@ -2,7 +2,6 @@ package com.armada.deployerhost;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageCmd;
-import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import org.apache.commons.io.IOUtils;
@@ -24,36 +23,41 @@ public class DockerHostService {
 
 	private DockerClient dockerHostClient;
 
-    public String sayHello() {
+	protected HostDockerCmdExecFactory dockerCmdExecFactory = new HostDockerCmdExecFactory(DockerClientBuilder.getDefaultDockerCmdExecFactory());
+
+
+	public String sayHello() {
         return "Hello world!";
     }
 
 
-	public String connectToDockerHost() {
+	public void connectToDockerHost() {
 		//TODO: move this over to properties file like in the client
-		DockerClientConfig.DockerClientConfigBuilder configBuilder = DockerClientConfig.createDefaultConfigBuilder();
-		configBuilder.withVersion("1.12");
-		configBuilder.withUri("http://localhost:2375");
-		configBuilder.withUsername("armadaproject");
-		configBuilder.withPassword("dockerrocks");
-		configBuilder.withEmail("DePaul2015SEStudioTeam1@gmail.com@gmail.com");
-		DockerClientConfig config = configBuilder.build();
-		dockerHostClient = DockerClientBuilder.getInstance(config).build();
-		return "connected to: " + dockerHostClient.toString();
+//		DockerClientConfig.DockerClientConfigBuilder configBuilder = DockerClientConfig.createDefaultConfigBuilder();
+//		configBuilder.withVersion("1.12");
+//		configBuilder.withUri("http://localhost:2375");
+//		configBuilder.withUsername("armadaproject");
+//		configBuilder.withPassword("dockerrocks");
+//		configBuilder.withEmail("DePaul2015SEStudioTeam1@gmail.com@gmail.com");
+//		DockerClientConfig config = configBuilder.build();
+//		dockerHostClient = DockerClientBuilder.getInstance(config).build();
+//		return "connected to: " + dockerHostClient.toString();
+
+		DockerClientConfig.DockerClientConfigBuilder b = DockerClientConfig.createDefaultConfigBuilder();
+		LOG.info(b.toString());
+		dockerHostClient = DockerClientBuilder.getInstance(b.build())
+				.withDockerCmdExecFactory(dockerCmdExecFactory).build();
+
+		LOG.info("connected to: " + dockerHostClient.toString());
 	}
 
 
 
-
-
-	public String buildImageFromDockerfile(String fileLocation) {
+	public String buildImageFromDockerfile(String fileLocation, String tag) {
 
 		File baseDir = new File(fileLocation);
-
-//		InputStream response = dockerHostClient.buildImageCmd(baseDir).exec();
-		BuildImageCmd buildImageCmd = dockerHostClient.buildImageCmd(baseDir).withTag("jdavidson091/sinatratest");
-		System.out.println("Tag of new image: " + buildImageCmd.getTag());
-
+		BuildImageCmd buildImageCmd = dockerHostClient.buildImageCmd(baseDir);
+		LOG.info("Tag of new image: " + buildImageCmd.getTag());
 
 		InputStream response = dockerHostClient.buildImageCmd(baseDir).exec();
 
@@ -74,8 +78,12 @@ public class DockerHostService {
 		return "exiting";
 	}
 
-	public String pushImage(String imageName) {
-		return null;
+	public void pushImage(String imageName) {
+
+		String username = dockerHostClient.authConfig().getUsername();
+		asString(dockerHostClient.pushImageCmd(imageName).exec());
+
+
 	}
 
 	protected String asString(InputStream response)  {

@@ -13,29 +13,31 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class SpringAppTests {
     @Autowired
     private DockerHostService dockerHostService;
+	String username;
 
 	@Before
 	public void setUp() {
-		System.out.println(dockerHostService.connectToDockerHost());
+		dockerHostService.connectToDockerHost();
+//		username = dockerHostService.authConfig().getUsername();
+
 	}
 
 
 	@Test
 	public void testPushingToDockerhub() {
-
-		dockerHostService.pullImageBusybox();
-
+		String imageName = "armadaproject/helloworldtest2";
+		dockerHostService.pushImage(imageName);
 	}
 
 	@Test
 	public void testConnectToDockerHost() {
-		System.out.println(dockerHostService.connectToDockerHost());
+		dockerHostService.connectToDockerHost();
 	}
 
 	@Test
 	public void testBuildImageFromDockerfile() {
-		String path = "/home/jodavidson/Documents/DockerProj/images/testsinatra";
-		System.out.println(dockerHostService.buildImageFromDockerfile(path));
+		String path = "/home/jodavidson/Documents/DockerProj/images/helloworldtest";
+		System.out.println(dockerHostService.buildImageFromDockerfile(path, "jdavidson091/testtag"));
 	}
 
 
